@@ -14,8 +14,10 @@ import java.net.Socket;
  */
 public class ProcessorHandler implements Runnable{
     private Socket socket;
-    public ProcessorHandler(Socket socket) {
+    private Object service;
+    public ProcessorHandler(Socket socket,Object service) {
         this.socket = socket;
+        this.service = service;
     }
 
     @Override
@@ -27,7 +29,7 @@ public class ProcessorHandler implements Runnable{
             //客服端通过socket发来请求数据
             //请求的哪个类，方法，参数
             RpcRequest rpcRequest = (RpcRequest) objectInputStream.readObject();
-            Object result = invoke(rpcRequest);
+            Object result = invoke(rpcRequest,service);
             objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             objectOutputStream.writeObject(result);
             objectOutputStream.flush();
@@ -51,16 +53,14 @@ public class ProcessorHandler implements Runnable{
         }
     }
 
-    private Object invoke(RpcRequest rpcRequest) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InstantiationException, InvocationTargetException {
+    private Object invoke(RpcRequest rpcRequest,Object service) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InstantiationException, InvocationTargetException {
         Object[] args = rpcRequest.getParameters();
         Class<?>[] types = new Class[args.length];
         for (int i=0;i<args.length;i++){
             types[i] = args[i].getClass();
         }
         Class<?> clazz = Class.forName(rpcRequest.getClassName());
-        Class<HelloServiceImpl> helloServiceClass = HelloServiceImpl.class;
 
-        Object service = helloServiceClass.newInstance();
         Method method = clazz.getMethod(rpcRequest.getMethodName(), types);
         Object result = method.invoke(service,args);
         return result;

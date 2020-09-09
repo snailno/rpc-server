@@ -10,6 +10,6 @@ public class App
     {
         IHelloService helloService = new HelloServiceImpl();
         RpcProxyServer proxyServer = new RpcProxyServer();
-        proxyServer.publisher(8080);
+        proxyServer.publisher(8080,helloService);
     }
 }
