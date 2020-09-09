@@ -5,6 +5,7 @@ package com.cyl.rpc;
  * @Date 2020/9/8 21:25
  * @Version 1.0
  */
+@RpcService(IHelloService.class)
 public class HelloServiceImpl implements IHelloService{
     @Override
     public String sayHello(String content) {

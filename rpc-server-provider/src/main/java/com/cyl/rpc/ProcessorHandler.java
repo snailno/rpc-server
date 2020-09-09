@@ -6,6 +6,7 @@ import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.Socket;
+import java.util.Map;
 
 /**
  * @Author Administrator
@@ -14,10 +15,10 @@ import java.net.Socket;
  */
 public class ProcessorHandler implements Runnable{
     private Socket socket;
-    private Object service;
-    public ProcessorHandler(Socket socket,Object service) {
+    private Map<String,Object> serviceNameMap;
+    public ProcessorHandler(Socket socket,Map<String,Object> serviceNameMap) {
         this.socket = socket;
-        this.service = service;
+        this.serviceNameMap = serviceNameMap;
     }
 
     @Override
@@ -29,7 +30,7 @@ public class ProcessorHandler implements Runnable{
             //客服端通过socket发来请求数据
             //请求的哪个类，方法，参数
             RpcRequest rpcRequest = (RpcRequest) objectInputStream.readObject();
-            Object result = invoke(rpcRequest,service);
+            Object result = invoke(rpcRequest);
             objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             objectOutputStream.writeObject(result);
             objectOutputStream.flush();
@@ -53,7 +54,12 @@ public class ProcessorHandler implements Runnable{
         }
     }
 
-    private Object invoke(RpcRequest rpcRequest,Object service) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InstantiationException, InvocationTargetException {
+    private Object invoke(RpcRequest rpcRequest) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InstantiationException, InvocationTargetException {
+        String serviceName = rpcRequest.getClassName();
+        Object o = serviceNameMap.get(serviceName);
+        if(o == null){
+            throw new RuntimeException("servcie is not found:"+serviceName);
+        }
         Object[] args = rpcRequest.getParameters();
         Class<?>[] types = new Class[args.length];
         for (int i=0;i<args.length;i++){
@@ -62,7 +68,7 @@ public class ProcessorHandler implements Runnable{
         Class<?> clazz = Class.forName(rpcRequest.getClassName());
 
         Method method = clazz.getMethod(rpcRequest.getMethodName(), types);
-        Object result = method.invoke(service,args);
+        Object result = method.invoke( o ,args);
         return result;
     }
 }

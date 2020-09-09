@@ -12,8 +12,8 @@ import java.util.concurrent.Executors;
  * @Version 1.0
  */
 public class RpcProxyServer {
-    ExecutorService executorService = Executors.newCachedThreadPool();
-    public void publisher(int port,Object service){
+   /* ExecutorService executorService = Executors.newCachedThreadPool();
+    public void publisher(int port,Object service) throws IOException {
         ServerSocket serverSocket = null;
         try {
             serverSocket = new ServerSocket(port);
@@ -24,6 +24,10 @@ public class RpcProxyServer {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if(serverSocket!=null){
+               serverSocket.close();
+            }
         }
-    }
+    }*/
 }
